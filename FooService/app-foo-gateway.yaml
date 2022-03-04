@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: app-gateway
+---
+
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: app-foo-gateway-routes
+  labels:
+    app: app-foo
+spec:
+  service:
+    name: app-foo-svc
+    namespace: default
+    port: 8080
+  routes:
+    - predicates:
+        - Path=/WeatherForecast
+        - Method=GET
+      filters:
+        - StripPrefix=0
+        - RateLimit=5,10s
+      tags:
+        - "weather forecast"
+      title: "Weather forecast"
+      description: "Get weather forecast information."
+    - predicates:
+        - Path=/**
+        - Method=GET
+      filters:
+        - StripPrefix=0
+      tags:
+        - "weather forecast"
+      title: "Weather forecast"
+      description: "Get weather forecast information."
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: app-foo-gateway-mapping
+  labels:
+    app: app-foo
+spec:
+  gatewayRef:
+    name: app-gateway
+    namespace: default
+  routeConfigRef:
+    name: app-foo-gateway-routes
+    namespace: default
